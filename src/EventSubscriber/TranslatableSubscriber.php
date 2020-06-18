@@ -135,11 +135,13 @@ final class TranslatableSubscriber implements EventSubscriber
                 'inversedBy' => 'translations',
                 'cascade' => ['persist', 'merge'],
                 'fetch' => $this->translationFetchMode,
-                'joinColumns' => [[
-                    'name' => 'translatable_id',
-                    'referencedColumnName' => 'id',
-                    'onDelete' => 'CASCADE',
-                ]],
+                'joinColumns' => array_map(static function ($identifier) {
+                    return [
+                        'name' => 'translatable_' . $identifier,
+                        'referencedColumnName' => $identifier,
+                        'onDelete' => 'CASCADE',
+                    ];
+                }, $classMetadataInfo->getIdentifier()),
                 'targetEntity' => $classMetadataInfo->getReflectionClass()->getMethod(
                     'getTranslatableEntityClass'
                 )->invoke(null),
@@ -147,13 +149,20 @@ final class TranslatableSubscriber implements EventSubscriber
         }
 
         $name = $classMetadataInfo->getTableName() . '_unique_translation';
+
         if (! $this->hasUniqueTranslationConstraint($classMetadataInfo, $name)) {
             $classMetadataInfo->table['uniqueConstraints'][$name] = [
-                'columns' => ['translatable_id', self::LOCALE],
+                'columns' => array_map(
+                        static function ($identifier) {
+                            return 'translatable_' . $identifier;
+                        }, $classMetadataInfo->getIdentifier()
+                    ) + [self::LOCALE],
             ];
         }
 
-        if (! $classMetadataInfo->hasField(self::LOCALE) && ! $classMetadataInfo->hasAssociation(self::LOCALE)) {
+        if (! $classMetadataInfo->hasField(self::LOCALE) && ! $classMetadataInfo->hasAssociation(
+                self::LOCALE
+            )) {
             $classMetadataInfo->mapField([
                 'fieldName' => self::LOCALE,
                 'type' => 'string',
