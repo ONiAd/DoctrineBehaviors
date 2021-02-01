@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Knp\DoctrineBehaviors\Contract\Entity\SluggableInterface;
 use Knp\DoctrineBehaviors\Repository\DefaultSluggableRepository;
 
-final class SluggableSubscriber implements EventSubscriber
+final class SluggableEventSubscriber implements EventSubscriber
 {
     /**
      * @var string
@@ -127,9 +127,12 @@ final class SluggableSubscriber implements EventSubscriber
     private function getOtherScheduledEntities(SluggableInterface $sluggable): array
     {
         $uowScheduledEntities = array_merge(
-            $this->entityManager->getUnitOfWork()->getScheduledEntityInsertions(),
-            $this->entityManager->getUnitOfWork()->getScheduledEntityUpdates(),
-            $this->entityManager->getUnitOfWork()->getScheduledEntityDeletions()
+            $this->entityManager->getUnitOfWork()
+                ->getScheduledEntityInsertions(),
+            $this->entityManager->getUnitOfWork()
+                ->getScheduledEntityUpdates(),
+            $this->entityManager->getUnitOfWork()
+                ->getScheduledEntityDeletions()
         );
 
         $scheduledEntities = [];

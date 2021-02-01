@@ -9,7 +9,7 @@ use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
 use Knp\DoctrineBehaviors\Contract\Entity\TimestampableInterface;
 
-final class TimestampableSubscriber implements EventSubscriber
+final class TimestampableEventSubscriber implements EventSubscriber
 {
     /**
      * @var string
@@ -30,6 +30,10 @@ final class TimestampableSubscriber implements EventSubscriber
         }
 
         if (! is_a($classMetadata->reflClass->getName(), TimestampableInterface::class, true)) {
+            return;
+        }
+
+        if ($classMetadata->isMappedSuperclass) {
             return;
         }
 
